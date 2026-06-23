@@ -7,6 +7,8 @@
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
     "about": "À propos",
+    "logout": "Déconnexion",
+    "welcome": "Bonjour {{name}}",
     "backToHome": "Retour à l'accueil",
     "allRightsReserved": "Tous droits réservés."
   },

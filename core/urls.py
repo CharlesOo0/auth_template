@@ -15,9 +15,21 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.shortcuts import redirect
+
+def email_confirmation_redirect(request, key):
+    return redirect(f"http://localhost:5173/auth/verify-email/{key}")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Redirection ultra-prioritaire au niveau racine (plus souple)
+    re_path(
+        r'^api/registration/account-confirm-email/(?P<key>.+)/$',
+        email_confirmation_redirect,
+        name='account_confirm_email',
+    ),
+    
     path('api/', include('authentication.urls')),
 ]

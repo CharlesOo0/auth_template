@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router";
+import { useParams, Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +9,9 @@ import { apiFetch } from "~/lib/api";
 
 export default function VerifyEmail() {
   const { t } = useTranslation();
-  const { key } = useParams();
+  const { key: pathKey } = useParams();
+  const [searchParams] = useSearchParams();
+  const key = pathKey || searchParams.get("key");
 
   const { isLoading, isSuccess, isError } = useQuery({
     queryKey: ["verify-email", key],

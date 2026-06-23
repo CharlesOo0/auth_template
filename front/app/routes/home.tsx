@@ -1,14 +1,31 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Rocket, Shield, Zap, CheckCircle, ArrowRight, Github, Play, Languages } from "lucide-react";
+import { Rocket, Shield, Zap, CheckCircle, ArrowRight, Github, Play, Languages, LogOut, User } from "lucide-react";
 import demoVideo from "../assets/demo.mp4";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { getUser, clearAuthData } from "~/lib/auth";
 
 /**
  * Home page modern and slick showcase.
  */
 export default function Home() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUser = getUser();
+    if (storedUser) {
+      setUser(storedUser);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    clearAuthData();
+    setUser(null);
+    navigate("/");
+  };
 
   const toggleLanguage = () => {
     const newLang = i18n.language === 'fr' ? 'en' : 'fr';
@@ -56,15 +73,34 @@ export default function Home() {
               >
                 <Languages className="w-5 h-5" />
               </button>
-              <Link to="/auth/login" className="text-sm font-medium hover:text-primary transition-colors">
-                {t('common.login')}
-              </Link>
-              <Link 
-                to="/auth/register" 
-                className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                {t('common.getStarted')}
-              </Link>
+              
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-full">
+                    <User className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">{user.username || user.email}</span>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t('common.logout')}</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link to="/auth/login" className="text-sm font-medium hover:text-primary transition-colors">
+                    {t('common.login')}
+                  </Link>
+                  <Link 
+                    to="/auth/register" 
+                    className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    {t('common.getStarted')}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -84,7 +120,7 @@ export default function Home() {
                 variants={fadeIn}
                 className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl mb-6"
               >
-                {t('home.hero.title')}
+                {user ? t('common.welcome', { name: user.username || user.first_name || user.email }) : t('home.hero.title')}
               </motion.h1>
               
               <motion.p 
@@ -94,25 +130,27 @@ export default function Home() {
                 {t('home.hero.subtitle')}
               </motion.p>
               
-              <motion.div 
-                variants={fadeIn}
-                className="flex flex-col sm:flex-row justify-center gap-4"
-              >
-                <Link 
-                  to="/auth/register"
-                  className="inline-flex items-center justify-center rounded-lg bg-primary px-8 py-3 text-base font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-105"
+              {!user && (
+                <motion.div 
+                  variants={fadeIn}
+                  className="flex flex-col sm:flex-row justify-center gap-4"
                 >
-                  {t('common.getStarted')}
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-                <a 
-                  href="#demo"
-                  className="inline-flex items-center justify-center rounded-lg border bg-background px-8 py-3 text-base font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
-                >
-                  <Play className="mr-2 w-4 h-4 fill-current" />
-                  {t('common.demo')}
-                </a>
-              </motion.div>
+                  <Link 
+                    to="/auth/register"
+                    className="inline-flex items-center justify-center rounded-lg bg-primary px-8 py-3 text-base font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-105"
+                  >
+                    {t('common.getStarted')}
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Link>
+                  <a 
+                    href="#demo"
+                    className="inline-flex items-center justify-center rounded-lg border bg-background px-8 py-3 text-base font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Play className="mr-2 w-4 h-4 fill-current" />
+                    {t('common.demo')}
+                  </a>
+                </motion.div>
+              )}
             </motion.div>
           </div>
 

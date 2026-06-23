@@ -10,6 +10,7 @@ import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
+import { setTokens, setUser } from "~/lib/auth";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -25,8 +26,14 @@ export default function Login() {
         body: JSON.stringify(credentials),
       }),
     onSuccess: (data) => {
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("refresh_token", data.refresh);
+      setTokens(data.access, data.refresh);
+      setUser(data.user);
+      
+      // Update local language if it differs from what's stored in user profile
+      if (data.user.language && i18n.language !== data.user.language) {
+        i18n.changeLanguage(data.user.language);
+      }
+      
       navigate("/");
     },
     onError: (err: any) => {

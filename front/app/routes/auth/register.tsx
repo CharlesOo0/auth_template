@@ -72,6 +72,7 @@ export default function Register() {
       email: formData.email,
       password1: formData.password,
       password2: formData.confirmPassword,
+      language: i18n.language || 'fr',
     });
   };
 
