@@ -18,7 +18,9 @@
       "passwordLabel": "Password",
       "submit": "Login",
       "noAccount": "Don't have an account?",
-      "registerLink": "Register"
+      "registerLink": "Register",
+      "error": "Incorrect email or password.",
+      "notVerified": "Please verify your email before logging in."
     },
     "register": {
       "title": "Create an account",
@@ -27,7 +29,16 @@
       "confirmPasswordLabel": "Confirm password",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
-      "loginLink": "Login"
+      "loginLink": "Login",
+      "success": "Registration successful! Please check your email.",
+      "error": "Registration error. Please check your data."
+    },
+    "verify": {
+      "title": "Email Verification",
+      "loading": "Verifying...",
+      "success": "Your email has been successfully verified!",
+      "error": "Invalid or expired verification link.",
+      "backToLogin": "Back to login"
     },
     "common": {
       "google": "Continue with Google",

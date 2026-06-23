@@ -18,7 +18,9 @@
       "passwordLabel": "Mot de passe",
       "submit": "Se connecter",
       "noAccount": "Pas encore de compte ?",
-      "registerLink": "S'inscrire"
+      "registerLink": "S'inscrire",
+      "error": "Email ou mot de passe incorrect.",
+      "notVerified": "Veuillez vérifier votre email avant de vous connecter."
     },
     "register": {
       "title": "Créer un compte",
@@ -27,7 +29,16 @@
       "confirmPasswordLabel": "Confirmer le mot de passe",
       "submit": "Créer un compte",
       "haveAccount": "Déjà un compte ?",
-      "loginLink": "Se connecter"
+      "loginLink": "Se connecter",
+      "success": "Inscription réussie ! Veuillez vérifier votre email.",
+      "error": "Erreur lors de l'inscription. Vérifiez les données."
+    },
+    "verify": {
+      "title": "Vérification de l'email",
+      "loading": "Vérification en cours...",
+      "success": "Votre email a été vérifié avec succès !",
+      "error": "Lien de vérification invalide ou expiré.",
+      "backToLogin": "Retour à la connexion"
     },
     "common": {
       "google": "Continuer avec Google",

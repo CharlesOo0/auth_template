@@ -5,6 +5,7 @@ export default [
     // Auth
     route("auth", "routes/auth/index.tsx", [
         route("login", "routes/auth/login.tsx"),
-        route("register", "routes/auth/register.tsx")
+        route("register", "routes/auth/register.tsx"),
+        route("verify-email/:key", "routes/auth/verify-email.tsx")
     ]),
 ] satisfies RouteConfig;

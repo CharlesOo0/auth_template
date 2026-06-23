@@ -1,15 +1,74 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Chrome } from "lucide-react";
+import { ArrowLeft, Chrome, Loader2, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import { apiFetch } from "~/lib/api";
 
 export default function Register() {
   const { t } = useTranslation();
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const registerMutation = useMutation({
+    mutationFn: (data: any) => 
+      apiFetch("/registration/", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      setSuccess(true);
+    },
+    onError: (err: any) => {
+      setError(err.detail || t("auth.register.error"));
+    }
+  });
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    registerMutation.mutate({
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      re_password: formData.confirmPassword,
+    });
+  };
+
+  if (success) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
+          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-center p-8">
+            <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-6" />
+            <CardTitle className="text-2xl mb-2">{t("auth.register.success")}</CardTitle>
+            <p className="text-muted-foreground mb-8">
+              {t("auth.register.subtitle")}
+            </p>
+            <Button asChild className="w-full rounded-xl py-6">
+              <Link to="/auth/login">{t("auth.register.loginLink")}</Link>
+            </Button>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
@@ -41,46 +100,68 @@ export default function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 px-8">
-            <div className="grid gap-2">
-              <Label htmlFor="name">{t("auth.register.nameLabel")}</Label>
-              <Input
-                id="name"
-                placeholder="John Doe"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t("auth.login.emailLabel")}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
-              <Input
-                id="password"
-                type="password"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-password">{t("auth.register.confirmPasswordLabel")}</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <Button className="w-full rounded-xl py-6 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all hover:cursor-pointer">
-              {t("auth.register.submit")}
-            </Button>
+            <form onSubmit={handleRegister} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="username">{t("auth.register.nameLabel")}</Label>
+                <Input
+                  id="username"
+                  placeholder="johndoe"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">{t("auth.login.emailLabel")}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="confirm-password">{t("auth.register.confirmPasswordLabel")}</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  required
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm font-medium text-destructive text-center">
+                  {error}
+                </p>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full rounded-xl py-6 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+                disabled={registerMutation.isPending}
+              >
+                {registerMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {t("auth.register.submit")}
+              </Button>
+            </form>
             
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">

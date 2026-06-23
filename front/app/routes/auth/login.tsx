@@ -1,15 +1,48 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Chrome } from "lucide-react";
+import { ArrowLeft, Chrome, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
+import { apiFetch } from "~/lib/api";
 
 export default function Login() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const loginMutation = useMutation({
+    mutationFn: (credentials: any) => 
+      apiFetch("/login/", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      }),
+    onSuccess: (data) => {
+      localStorage.setItem("access_token", data.access);
+      localStorage.setItem("refresh_token", data.refresh);
+      navigate("/");
+    },
+    onError: (err: any) => {
+      if (err.non_field_errors?.[0]?.includes("verified")) {
+        setError(t("auth.login.notVerified"));
+      } else {
+        setError(t("auth.login.error"));
+      }
+    }
+  });
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    loginMutation.mutate({ email, password });
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
@@ -41,30 +74,48 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 px-8">
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t("auth.login.emailLabel")}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
+            <form onSubmit={handleLogin} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">{t("auth.login.emailLabel")}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-              <Input
-                id="password"
-                type="password"
-                className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                required
-              />
-            </div>
-            <Button className="w-full rounded-xl py-6 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all hover:cursor-pointer">
-              {t("auth.login.submit")}
-            </Button>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              {error && (
+                <p className="text-sm font-medium text-destructive text-center">
+                  {error}
+                </p>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full rounded-xl py-6 font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all hover:cursor-pointer"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {t("auth.login.submit")}
+              </Button>
+            </form>
             
             <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
