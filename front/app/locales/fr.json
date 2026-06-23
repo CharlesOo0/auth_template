@@ -7,7 +7,32 @@
     "features": "Fonctionnalités",
     "pricing": "Tarifs",
     "about": "À propos",
+    "backToHome": "Retour à l'accueil",
     "allRightsReserved": "Tous droits réservés."
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Entrez vos identifiants pour accéder à votre compte",
+      "emailLabel": "Adresse email",
+      "passwordLabel": "Mot de passe",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "registerLink": "S'inscrire"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Remplissez les informations pour nous rejoindre",
+      "nameLabel": "Nom complet",
+      "confirmPasswordLabel": "Confirmer le mot de passe",
+      "submit": "Créer un compte",
+      "haveAccount": "Déjà un compte ?",
+      "loginLink": "Se connecter"
+    },
+    "common": {
+      "google": "Continuer avec Google",
+      "or": "Ou continuer avec"
+    }
   },
   "home": {
     "hero": {

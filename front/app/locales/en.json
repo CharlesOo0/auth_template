@@ -7,7 +7,32 @@
     "features": "Features",
     "pricing": "Pricing",
     "about": "About",
+    "backToHome": "Back to Home",
     "allRightsReserved": "All rights reserved."
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "subtitle": "Enter your credentials to access your account",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "submit": "Login",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Fill in the information to join us",
+      "nameLabel": "Full name",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Login"
+    },
+    "common": {
+      "google": "Continue with Google",
+      "or": "Or continue with"
+    }
   },
   "home": {
     "hero": {
