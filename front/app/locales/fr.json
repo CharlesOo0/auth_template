@@ -1,0 +1,39 @@
+{
+  "common": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "getStarted": "Démarrer",
+    "demo": "Voir la démo",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "allRightsReserved": "Tous droits réservés."
+  },
+  "home": {
+    "hero": {
+      "title": "Boostez votre productivité pour demain",
+      "subtitle": "Une solution innovante conçue pour simplifier vos processus complexes. Gagnez du temps et concentrez-vous sur ce qui compte vraiment pour votre entreprise."
+    },
+    "demoSection": {
+      "title": "Vidéo de démonstration"
+    },
+    "featuresSection": {
+      "title": "Tout ce dont vous avez besoin",
+      "subtitle": "Notre plateforme offre les outils nécessaires pour faire passer votre projet au niveau supérieur.",
+      "items": {
+        "performance": {
+          "title": "Performance éclair",
+          "description": "Optimisé pour la vitesse et une réactivité maximale sur tous les appareils."
+        },
+        "security": {
+          "title": "Sécurité renforcée",
+          "description": "Vos données sont protégées par les protocoles de sécurité les plus avancés."
+        },
+        "deployment": {
+          "title": "Déploiement rapide",
+          "description": "Passez de l'idée à la production en quelques minutes seulement."
+        }
+      }
+    }
+  }
+}

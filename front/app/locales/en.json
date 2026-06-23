@@ -1,0 +1,39 @@
+{
+  "common": {
+    "login": "Login",
+    "register": "Register",
+    "getStarted": "Get Started",
+    "demo": "Watch Demo",
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "allRightsReserved": "All rights reserved."
+  },
+  "home": {
+    "hero": {
+      "title": "Boost your productivity for tomorrow",
+      "subtitle": "An innovative solution designed to simplify your complex processes. Save time and focus on what really matters to your business."
+    },
+    "demoSection": {
+      "title": "Demo Video"
+    },
+    "featuresSection": {
+      "title": "Everything you need",
+      "subtitle": "Our platform offers the tools needed to take your project to the next level.",
+      "items": {
+        "performance": {
+          "title": "Lightning performance",
+          "description": "Optimized for speed and maximum responsiveness on all devices."
+        },
+        "security": {
+          "title": "Enhanced security",
+          "description": "Your data is protected by the most advanced security protocols."
+        },
+        "deployment": {
+          "title": "Quick deployment",
+          "description": "Go from idea to production in just minutes."
+        }
+      }
+    }
+  }
+}
