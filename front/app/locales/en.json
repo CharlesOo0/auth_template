@@ -31,7 +31,9 @@
       "haveAccount": "Already have an account?",
       "loginLink": "Login",
       "success": "Registration successful! Please check your email.",
-      "error": "Registration error. Please check your data."
+      "error": "Registration error. Please check your data.",
+      "passwordMismatch": "Passwords do not match.",
+      "passwordInvalid": "Password must contain at least 9 characters, an uppercase letter, a lowercase letter, a number, and a special character."
     },
     "verify": {
       "title": "Email Verification",

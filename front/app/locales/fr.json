@@ -31,7 +31,9 @@
       "haveAccount": "Déjà un compte ?",
       "loginLink": "Se connecter",
       "success": "Inscription réussie ! Veuillez vérifier votre email.",
-      "error": "Erreur lors de l'inscription. Vérifiez les données."
+      "error": "Erreur lors de l'inscription. Vérifiez les données.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "passwordInvalid": "Le mot de passe doit contenir au moins 9 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
     },
     "verify": {
       "title": "Vérification de l'email",

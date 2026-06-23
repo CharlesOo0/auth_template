@@ -1,10 +1,14 @@
+import i18next from "i18next";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("access_token");
-  
+  const language = i18next.language || "fr";
+
   const headers = {
     "Content-Type": "application/json",
+    "Accept-Language": language,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };

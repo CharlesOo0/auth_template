@@ -22,6 +22,9 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Regex: 9+ chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,}$/;
+
   const registerMutation = useMutation({
     mutationFn: (data: any) => 
       apiFetch("/registration/", {
@@ -32,18 +35,43 @@ export default function Register() {
       setSuccess(true);
     },
     onError: (err: any) => {
-      setError(err.detail || t("auth.register.error"));
+      // Handle Django validation errors which might be an object/array
+      if (err.password1 && Array.isArray(err.password1)) {
+        setError(err.password1.join(" "));
+      } else if (err.password2 && Array.isArray(err.password2)) {
+        setError(err.password2.join(" "));
+      } else if (err.email && Array.isArray(err.email)) {
+        setError(err.email.join(" "));
+      } else if (err.username && Array.isArray(err.username)) {
+        setError(err.username.join(" "));
+      } else if (err.non_field_errors && Array.isArray(err.non_field_errors)) {
+        setError(err.non_field_errors.join(" "));
+      } else {
+        setError(err.detail || t("auth.register.error"));
+      }
     }
   });
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Client-side validation
+    if (formData.password !== formData.confirmPassword) {
+      setError(t("auth.register.passwordMismatch"));
+      return;
+    }
+
+    if (!passwordRegex.test(formData.password)) {
+      setError(t("auth.register.passwordInvalid"));
+      return;
+    }
+
     registerMutation.mutate({
       username: formData.username,
       email: formData.email,
-      password: formData.password,
-      re_password: formData.confirmPassword,
+      password1: formData.password,
+      password2: formData.confirmPassword,
     });
   };
 
