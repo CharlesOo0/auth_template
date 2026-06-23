@@ -1,0 +1,10 @@
+django
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+dj-rest-auth
+django-allauth
+python-dotenv
+psycopg2-binary
+dj-database-url
+cryptography

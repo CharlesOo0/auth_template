@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
 } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 
 import type { Route } from "./+types/root";
@@ -46,10 +47,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const [queryClient] = useState(() => new QueryClient());
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <GoogleOAuthProvider clientId={googleClientId || "dummy"}>
+        <Outlet />
+      </GoogleOAuthProvider>
     </QueryClientProvider>
   );
 }

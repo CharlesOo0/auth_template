@@ -1,29 +1,58 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Chrome, Loader2, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
+import { setUser } from "~/lib/auth";
+import { GoogleLoginButton } from "~/components/auth/google-login-button";
 
 export default function Register() {
-  const { t } = useTranslation();
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [error, setError] = useState<string | null>(null);
+  const { t, i18n } = useTranslation();
   const [success, setSuccess] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  // Regex: 9+ chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{9,}$/;
+  const googleClientId = useMemo(() => import.meta.env.VITE_GOOGLE_CLIENT_ID || "", []);
+
+  const registerSchema = z.object({
+    username: z.string().min(3, t("auth.register.error")),
+    email: z.string().email(t("auth.register.error")),
+    password: z.string()
+      .min(9, t("auth.register.passwordInvalid"))
+      .regex(/[a-z]/, t("auth.register.passwordInvalid"))
+      .regex(/[A-Z]/, t("auth.register.passwordInvalid"))
+      .regex(/\d/, t("auth.register.passwordInvalid"))
+      .regex(/[@$!%*?&]/, t("auth.register.passwordInvalid")),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t("auth.register.passwordMismatch"),
+    path: ["confirmPassword"],
+  });
+
+  type RegisterValues = z.infer<typeof registerSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
   const registerMutation = useMutation({
     mutationFn: (data: any) => 
@@ -35,43 +64,25 @@ export default function Register() {
       setSuccess(true);
     },
     onError: (err: any) => {
-      // Handle Django validation errors which might be an object/array
-      if (err.password1 && Array.isArray(err.password1)) {
-        setError(err.password1.join(" "));
-      } else if (err.password2 && Array.isArray(err.password2)) {
-        setError(err.password2.join(" "));
-      } else if (err.email && Array.isArray(err.email)) {
-        setError(err.email.join(" "));
+      if (err.email && Array.isArray(err.email)) {
+        setServerError(err.email.join(" "));
       } else if (err.username && Array.isArray(err.username)) {
-        setError(err.username.join(" "));
+        setServerError(err.username.join(" "));
       } else if (err.non_field_errors && Array.isArray(err.non_field_errors)) {
-        setError(err.non_field_errors.join(" "));
+        setServerError(err.non_field_errors.join(" "));
       } else {
-        setError(err.detail || t("auth.register.error"));
+        setServerError(err.detail || t("auth.register.error"));
       }
     }
   });
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Client-side validation
-    if (formData.password !== formData.confirmPassword) {
-      setError(t("auth.register.passwordMismatch"));
-      return;
-    }
-
-    if (!passwordRegex.test(formData.password)) {
-      setError(t("auth.register.passwordInvalid"));
-      return;
-    }
-
+  const onSubmit = (data: RegisterValues) => {
+    setServerError(null);
     registerMutation.mutate({
-      username: formData.username,
-      email: formData.email,
-      password1: formData.password,
-      password2: formData.confirmPassword,
+      username: data.username,
+      email: data.email,
+      password1: data.password,
+      password2: data.confirmPassword,
       language: i18n.language || 'fr',
     });
   };
@@ -129,17 +140,16 @@ export default function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 px-8">
-            <form onSubmit={handleRegister} className="grid gap-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="username">{t("auth.register.nameLabel")}</Label>
                 <Input
                   id="username"
                   placeholder="johndoe"
                   className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  required
+                  {...register("username")}
                 />
+                {errors.username && <p className="text-xs text-destructive">{errors.username.message}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">{t("auth.login.emailLabel")}</Label>
@@ -148,10 +158,9 @@ export default function Register() {
                   type="email"
                   placeholder="name@example.com"
                   className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
+                  {...register("email")}
                 />
+                {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
@@ -159,10 +168,9 @@ export default function Register() {
                   id="password"
                   type="password"
                   className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
+                  {...register("password")}
                 />
+                {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">{t("auth.register.confirmPasswordLabel")}</Label>
@@ -170,15 +178,14 @@ export default function Register() {
                   id="confirm-password"
                   type="password"
                   className="rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  required
+                  {...register("confirmPassword")}
                 />
+                {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>}
               </div>
 
-              {error && (
+              {serverError && (
                 <p className="text-sm font-medium text-destructive text-center">
-                  {error}
+                  {serverError}
                 </p>
               )}
 
@@ -192,21 +199,24 @@ export default function Register() {
               </Button>
             </form>
             
-            <div className="relative my-2">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground italic">
-                  {t("auth.common.or")}
-                </span>
-              </div>
-            </div>
+            {googleClientId && (
+              <>
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground italic">
+                      {t("auth.common.or")}
+                    </span>
+                  </div>
+                </div>
 
-            <Button variant="outline" className="w-full rounded-xl py-6 border-border/50 hover:bg-secondary/50 transition-all">
-              <Chrome className="mr-2 h-4 w-4" />
-              {t("auth.common.google")}
-            </Button>
+                <GoogleLoginButton 
+                  onError={() => setServerError(t("auth.register.error"))}
+                />
+              </>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4 pb-8">
             <p className="text-sm text-muted-foreground text-center">

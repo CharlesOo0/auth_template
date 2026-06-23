@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Rocket, Shield, Zap, CheckCircle, ArrowRight, Github, Play, Languages, LogOut, User } from "lucide-react";
+import { Rocket, Shield, Zap, CheckCircle, ArrowRight, Github, Play, Languages, LogOut, User as UserIcon } from "lucide-react";
 import demoVideo from "../assets/demo.mp4";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import { getUser, clearAuthData } from "~/lib/auth";
+import { getUser, clearAuthData, type User } from "~/lib/auth";
 
 /**
  * Home page modern and slick showcase.
@@ -12,18 +12,18 @@ import { getUser, clearAuthData } from "~/lib/auth";
 export default function Home() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUserState] = useState<User | null>(null);
 
   useEffect(() => {
     const storedUser = getUser();
     if (storedUser) {
-      setUser(storedUser);
+      setUserState(storedUser);
     }
   }, []);
 
   const handleLogout = () => {
     clearAuthData();
-    setUser(null);
+    setUserState(null);
     navigate("/");
   };
 
@@ -77,7 +77,7 @@ export default function Home() {
               {user ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-full">
-                    <User className="w-4 h-4 text-primary" />
+                    <UserIcon className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium">{user.username || user.email}</span>
                   </div>
                   <button 

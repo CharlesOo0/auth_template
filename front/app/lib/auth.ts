@@ -1,18 +1,17 @@
-export const getAccessToken = () => localStorage.getItem("access_token");
-export const getRefreshToken = () => localStorage.getItem("refresh_token");
-
-export const setTokens = (access: string, refresh: string) => {
-  localStorage.setItem("access_token", access);
-  localStorage.setItem("refresh_token", refresh);
-};
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  language: string;
+  is_customer: boolean;
+  is_administrator: boolean;
+}
 
 export const clearAuthData = () => {
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
   localStorage.removeItem("user");
 };
 
-export const getUser = () => {
+export const getUser = (): User | null => {
   const user = localStorage.getItem("user");
   if (!user) return null;
   try {
@@ -22,6 +21,21 @@ export const getUser = () => {
   }
 };
 
-export const setUser = (user: any) => {
-  localStorage.setItem("user", JSON.stringify(user));
+export const setUser = (user: User | null) => {
+  if (user) {
+    localStorage.setItem("user", JSON.stringify(user));
+  } else {
+    localStorage.removeItem("user");
+  }
+};
+
+/**
+ * setTokens is now a dummy function because tokens are handled via HttpOnly cookies.
+ * We keep it for backward compatibility in the code.
+ */
+export const setTokens = (access?: string, refresh?: string) => {
+  // Les tokens sont maintenant gérés par les cookies HttpOnly
+  if (typeof window !== "undefined") {
+    console.log("Tokens are managed by HttpOnly cookies");
+  }
 };

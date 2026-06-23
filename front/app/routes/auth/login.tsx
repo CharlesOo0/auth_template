@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Chrome, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -11,13 +11,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
 import { setTokens, setUser } from "~/lib/auth";
+import { GoogleLoginButton } from "~/components/auth/google-login-button";
 
 export default function Login() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const googleClientId = useMemo(() => import.meta.env.VITE_GOOGLE_CLIENT_ID || "", []);
 
   const loginMutation = useMutation({
     mutationFn: (credentials: any) => 
@@ -124,21 +127,24 @@ export default function Login() {
               </Button>
             </form>
             
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground italic">
-                  {t("auth.common.or")}
-                </span>
-              </div>
-            </div>
+            {googleClientId && (
+              <>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground italic">
+                      {t("auth.common.or")}
+                    </span>
+                  </div>
+                </div>
 
-            <Button variant="outline" className="w-full rounded-xl py-6 border-border/50 hover:bg-secondary/50 transition-all">
-              <Chrome className="mr-2 h-4 w-4" />
-              {t("auth.common.google")}
-            </Button>
+                <GoogleLoginButton 
+                  onError={() => setError(t("auth.login.error"))}
+                />
+              </>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4 pb-8">
             <p className="text-sm text-muted-foreground text-center">

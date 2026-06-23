@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.shortcuts import redirect
 
+from django.conf import settings
+
 def email_confirmation_redirect(request, key):
-    return redirect(f"http://localhost:5173/auth/verify-email/{key}")
+    return redirect(f"{settings.FRONTEND_URL}/auth/verify-email/{key}")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
