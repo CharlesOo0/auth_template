@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
-from django.utils import translation
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
@@ -61,7 +60,12 @@ class PasswordResetSerializer(DefaultPasswordResetSerializer):
 
 
 class RegisterSerializer(DefaultRegisterSerializer):
-    language = serializers.CharField(required=False, default='fr')
+    # ChoiceField (not a bare CharField) so an out-of-range or overlong value
+    # is rejected as a 400 here, rather than reaching user.save() - a plain
+    # .save() doesn't run the model field's max_length validation, so on
+    # Postgres (this app's production DB) an unvalidated value would raise an
+    # unhandled DataError instead of a clean validation error.
+    language = serializers.ChoiceField(choices=settings.LANGUAGES, required=False, default='fr')
 
     def validate_password(self, value):
         try:
@@ -72,11 +76,6 @@ class RegisterSerializer(DefaultRegisterSerializer):
 
     def save(self, request):
         user = super().save(request)
-        language = self.validated_data.get('language', 'fr')
-        user.language = language
+        user.language = self.validated_data['language']
         user.save()
-        
-        # Activate the language for the current request so the confirmation
-        # e-mail sent by allauth (via signals or within save()) uses it.
-        translation.activate(language)
         return user

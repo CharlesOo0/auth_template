@@ -74,6 +74,21 @@ class RegistrationTests(APITestCase):
         user = User.objects.get(username='ines')
         self.assertEqual(user.language, 'en')
 
+    def test_unsupported_language_is_rejected(self):
+        # Must be a 400, not a 500: the `language` model field is
+        # max_length=10, and a bare user.save() (not full_clean()) doesn't
+        # enforce that - an unvalidated overlong value would otherwise reach
+        # the DB and raise an unhandled DataError on Postgres.
+        response = self.client.post('/api/registration/', {
+            'username': 'overlong',
+            'email': 'overlong@example.com',
+            'password1': 'Str0ng!Pass',
+            'password2': 'Str0ng!Pass',
+            'language': 'this-is-way-too-long',
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username='overlong').exists())
+
 
 class LoginTests(APITestCase):
     def setUp(self):

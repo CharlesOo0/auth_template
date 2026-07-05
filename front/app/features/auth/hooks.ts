@@ -11,24 +11,26 @@ import type { PasswordPolicy, User } from "./types";
 // see authentication/views.py::PasswordPolicyView.
 const FALLBACK_POLICY: PasswordPolicy = { min_length: 9, special_chars: "@$!%*?&" };
 
-function useSyncUserLanguage() {
+// Shared onSuccess for every mutation that logs a user in (login, google
+// login, verify-otp): commits the user to auth context and, if their stored
+// profile language differs from the UI's current one, switches the UI to
+// match it.
+function useOnAuthSuccess() {
+  const { setUser } = useAuth();
   const { i18n } = useTranslation();
-  return (user: User) => {
-    if (user.language && i18n.language !== user.language) {
-      i18n.changeLanguage(user.language);
+  return (data: { user: User }) => {
+    setUser(data.user);
+    if (data.user.language && i18n.language !== data.user.language) {
+      i18n.changeLanguage(data.user.language);
     }
   };
 }
 
 export function useLogin() {
-  const { setUser } = useAuth();
-  const syncLanguage = useSyncUserLanguage();
+  const onAuthSuccess = useOnAuthSuccess();
   return useMutation<any, ApiError, { email: string; password: string }>({
     mutationFn: authApi.login,
-    onSuccess: (data) => {
-      setUser(data.user);
-      syncLanguage(data.user);
-    },
+    onSuccess: onAuthSuccess,
   });
 }
 
@@ -37,26 +39,18 @@ export function useRegister() {
 }
 
 export function useGoogleLogin() {
-  const { setUser } = useAuth();
-  const syncLanguage = useSyncUserLanguage();
+  const onAuthSuccess = useOnAuthSuccess();
   return useMutation<any, ApiError, string>({
     mutationFn: authApi.googleLogin,
-    onSuccess: (data) => {
-      setUser(data.user);
-      syncLanguage(data.user);
-    },
+    onSuccess: onAuthSuccess,
   });
 }
 
 export function useVerifyOtp() {
-  const { setUser } = useAuth();
-  const syncLanguage = useSyncUserLanguage();
+  const onAuthSuccess = useOnAuthSuccess();
   return useMutation<any, ApiError, { email: string; code: string }>({
     mutationFn: ({ email, code }) => authApi.verifyOtp(email, code),
-    onSuccess: (data) => {
-      setUser(data.user);
-      syncLanguage(data.user);
-    },
+    onSuccess: onAuthSuccess,
   });
 }
 
