@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
@@ -15,14 +16,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-# SECRET_KEY is only needed here so settings.py can load (DEBUG defaults to
-# False with no .env present at build time); it's not the runtime key.
-RUN SECRET_KEY=build-time-only python manage.py collectstatic --noinput
-
 RUN useradd --create-home --shell /bin/bash appuser \
-    && chown -R appuser:appuser /app
-USER appuser
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
+# Runs as root so it can apply migrations/collectstatic against volumes
+# (e.g. a fresh named volume for staticfiles) before dropping to appuser
+# to actually run the server. See entrypoint.sh.
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

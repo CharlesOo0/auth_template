@@ -7,4 +7,9 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  server: {
+    // Bind to all interfaces so the dev server is reachable from outside
+    // the container when run via docker-compose.
+    host: true,
+  },
 });

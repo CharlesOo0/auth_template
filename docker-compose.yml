@@ -27,6 +27,10 @@ services:
     build: .
     volumes:
       - .:/app
+      # Named volume takes precedence over the bind mount above for this
+      # subpath, so collectstatic output isn't hidden by the host repo
+      # (which has no staticfiles/ dir) when the bind mount is applied.
+      - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
     environment:
@@ -43,9 +47,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8000), timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   frontend:
-    build: ./front
+    build:
+      context: ./front
+      # Use the stage with devDependencies installed (vite, etc.) so
+      # `npm run dev` works; the final Dockerfile stage only ships
+      # production deps and a pre-built app for real deployment.
+      target: development-dependencies-env
+    command: npm run dev
     volumes:
       - ./front:/app
       - /app/node_modules
@@ -54,8 +70,16 @@ services:
     environment:
       - VITE_API_URL=http://localhost:8000/api
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   postgres_data:
   redis_data:
+  static_volume:
