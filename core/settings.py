@@ -206,6 +206,8 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
+from authentication.validators import MIN_LENGTH as PASSWORD_MIN_LENGTH
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -213,7 +215,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
         'OPTIONS': {
-            'min_length': 9,
+            'min_length': PASSWORD_MIN_LENGTH,
         }
     },
     {
@@ -331,3 +333,28 @@ SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
+
+# Reverse proxy / TLS termination
+# A real deployment normally sits behind a reverse proxy or load balancer
+# that terminates TLS (nginx, most managed hosts, Cloudflare...), so Django
+# itself only ever sees plain HTTP from the proxy. Without telling Django to
+# trust the proxy's X-Forwarded-Proto header, SECURE_SSL_REDIRECT above
+# redirect-loops forever and "secure" cookies never get sent. Only trust the
+# header when explicitly opted into (USE_X_FORWARDED_PROTO=True) - blindly
+# trusting it from an untrusted client would let it fake HTTPS, so this must
+# only be enabled once the proxy is configured to strip any client-supplied
+# X-Forwarded-Proto and set its own.
+if os.getenv('USE_X_FORWARDED_PROTO', 'False') == 'True':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CSRF trusted origins: the frontend is a different origin from the backend
+# in every real deployment (separate domain/subdomain), so Django's
+# Origin-header CSRF check needs it explicitly trusted, or the JWT cookie's
+# CSRF check (JWT_AUTH_COOKIE_USE_CSRF above) rejects state-changing
+# requests. Defaults to FRONTEND_URL; override with a comma-separated list
+# via CSRF_TRUSTED_ORIGINS for multi-domain deployments.
+CSRF_TRUSTED_ORIGINS = (
+    os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if os.getenv('CSRF_TRUSTED_ORIGINS')
+    else [FRONTEND_URL]
+)

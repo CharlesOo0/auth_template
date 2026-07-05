@@ -13,12 +13,14 @@ import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
+import { usePasswordPolicy, specialCharsPattern } from "~/lib/password-policy";
 import { GoogleLoginButton } from "~/components/auth/google-login-button";
 
 export default function Register() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
+  const passwordPolicy = usePasswordPolicy();
 
   const googleClientId = useMemo(() => import.meta.env.VITE_GOOGLE_CLIENT_ID || "", []);
 
@@ -26,11 +28,11 @@ export default function Register() {
     username: z.string().min(3, t("auth.register.error")),
     email: z.string().email(t("auth.register.error")),
     password: z.string()
-      .min(9, t("auth.register.passwordInvalid"))
+      .min(passwordPolicy.min_length, t("auth.register.passwordInvalid"))
       .regex(/[a-z]/, t("auth.register.passwordInvalid"))
       .regex(/[A-Z]/, t("auth.register.passwordInvalid"))
       .regex(/\d/, t("auth.register.passwordInvalid"))
-      .regex(/[@$!%*?&]/, t("auth.register.passwordInvalid")),
+      .regex(specialCharsPattern(passwordPolicy), t("auth.register.passwordInvalid")),
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
     message: t("auth.register.passwordMismatch"),

@@ -12,20 +12,22 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { apiFetch } from "~/lib/api";
+import { usePasswordPolicy, specialCharsPattern } from "~/lib/password-policy";
 
 export default function ResetPassword() {
   const { t } = useTranslation();
   const { uid, token } = useParams();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const passwordPolicy = usePasswordPolicy();
 
   const resetPasswordSchema = z.object({
     newPassword: z.string()
-      .min(9, t("auth.resetPassword.passwordInvalid"))
+      .min(passwordPolicy.min_length, t("auth.resetPassword.passwordInvalid"))
       .regex(/[a-z]/, t("auth.resetPassword.passwordInvalid"))
       .regex(/[A-Z]/, t("auth.resetPassword.passwordInvalid"))
       .regex(/\d/, t("auth.resetPassword.passwordInvalid"))
-      .regex(/[@$!%*?&]/, t("auth.resetPassword.passwordInvalid")),
+      .regex(specialCharsPattern(passwordPolicy), t("auth.resetPassword.passwordInvalid")),
     confirmPassword: z.string(),
   }).refine((data) => data.newPassword === data.confirmPassword, {
     message: t("auth.resetPassword.passwordMismatch"),

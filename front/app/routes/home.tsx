@@ -127,7 +127,7 @@ export default function Home() {
                 variants={fadeIn}
                 className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl mb-6"
               >
-                {user ? t('common.welcome', { name: user.username || user.first_name || user.email }) : t('home.hero.title')}
+                {user ? t('common.welcome', { name: user.username || user.email }) : t('home.hero.title')}
               </motion.h1>
               
               <motion.p 

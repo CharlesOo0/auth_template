@@ -14,7 +14,7 @@ from allauth.account.utils import user_pk_to_url_str
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 
-from authentication import otp
+from authentication import otp, validators
 from authentication.serializers import UserSerializer
 
 User = get_user_model()
@@ -195,6 +195,16 @@ class EmailConfirmationRedirectTests(APITestCase):
     def test_verify_email_with_invalid_key_is_rejected(self):
         response = self.client.post('/api/registration/verify-email/', {'key': 'not-a-real-key'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_resend_email_bypass_endpoint_is_not_exposed(self):
+        # dj-rest-auth's own resend-email/ (ResendEmailVerificationView) is
+        # deliberately not wired up - it's unthrottled and would let anyone
+        # trigger a working, link-based confirmation email for any address,
+        # bypassing the OTP-only verification flow entirely. See
+        # authentication/urls.py.
+        response = self.client.post('/api/registration/resend-email/', {'email': self.user.email})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class PasswordResetTests(APITestCase):
@@ -460,3 +470,29 @@ class PurgeUnverifiedUsersTests(APITestCase):
         self.assertFalse(User.objects.filter(username='stale').exists())
         self.assertTrue(User.objects.filter(username='recent').exists())
         self.assertTrue(User.objects.filter(username='verified').exists())
+
+
+class PasswordPolicyTests(APITestCase):
+    def test_policy_endpoint_is_publicly_readable(self):
+        response = self.client.get('/api/password-policy/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {
+            'min_length': validators.MIN_LENGTH,
+            'special_chars': validators.SPECIAL_CHARS,
+        })
+
+    def test_policy_matches_what_registration_actually_enforces(self):
+        # Regression guard for the single-source-of-truth claim: the policy
+        # endpoint's numbers must match what ComplexityValidator/
+        # MinimumLengthValidator actually reject at registration time.
+        too_short_password = 'Ab1' + validators.SPECIAL_CHARS[0]
+        self.assertLess(len(too_short_password), validators.MIN_LENGTH)
+
+        response = self.client.post('/api/registration/', {
+            'username': 'shortpass',
+            'email': 'shortpass@example.com',
+            'password1': too_short_password,
+            'password2': too_short_password,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username='shortpass').exists())

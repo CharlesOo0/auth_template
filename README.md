@@ -40,6 +40,15 @@ python manage.py test authentication.tests.SomeTestCase.test_x # single test
 python manage.py createsuperuser
 ```
 
+#### Scheduled maintenance jobs (production)
+
+Neither of these runs automatically - wire them into your platform's scheduler (cron, a Kubernetes CronJob, Heroku Scheduler, etc.) once deployed:
+
+| Command | Purpose | Suggested schedule |
+|---|---|---|
+| `python manage.py purge_unverified_users --older-than-hours=24` | Deletes accounts that never completed OTP e-mail verification. | Daily |
+| `python manage.py flushexpiredtokens` | Deletes expired rows from `simplejwt`'s outstanding/blacklisted refresh-token tables, which otherwise grow unbounded (see `ROTATE_REFRESH_TOKENS`/`BLACKLIST_AFTER_ROTATION` in `core/settings.py`). | Daily |
+
 ### Frontend
 
 ```bash
@@ -67,11 +76,15 @@ Backend (`.env`, see `.env.example`):
 | Variable | Purpose |
 |---|---|
 | `SECRET_KEY` | Django secret key. Required when `DEBUG=False`. |
+| `JWT_SIGNING_KEY` | Signing key for JWT access/refresh tokens, kept separate from `SECRET_KEY` so leaking/rotating one doesn't force rotating the other. Required when `DEBUG=False`. |
 | `DEBUG` | Defaults to `False`. Only set `True` locally. |
 | `ALLOWED_HOSTS` | Comma-separated hosts, required in production. |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated origins allowed to call the API. |
-| `FRONTEND_URL` | Used to build email-confirmation redirect links. |
+| `CSRF_TRUSTED_ORIGINS` | Comma-separated origins trusted for CSRF-protected requests. Defaults to `FRONTEND_URL`; set explicitly if the frontend is served from more than one origin. |
+| `USE_X_FORWARDED_PROTO` | Set to `True` only if deployed behind a reverse proxy/load balancer that terminates TLS and sets `X-Forwarded-Proto` (and strips any client-supplied copy of that header). Needed so `SECURE_SSL_REDIRECT` doesn't redirect-loop. |
+| `FRONTEND_URL` | Used to build email-confirmation/password-reset redirect links, and as the default `CSRF_TRUSTED_ORIGINS`. |
 | `DATABASE_URL` | Falls back to local sqlite if unset. |
+| `REDIS_URL` | Cache backend, shared by OTP codes and DRF rate-limiting. **Required in any multi-worker/multi-container deployment** - without it, each process gets its own in-memory cache, so OTP verification and throttling both misbehave. Falls back to a local in-memory cache if unset (fine for a single `runserver` process only). |
 | `EMAIL_*` | SMTP settings used to send OTP/verification emails. |
 
 Frontend (`front/.env`, see `front/.env.example`):

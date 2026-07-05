@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from . import otp
+from . import validators
 
 User = get_user_model()
 
@@ -163,3 +164,21 @@ class GoogleLogin(SocialLoginView):
     callback_url = settings.FRONTEND_URL
     client_class = OAuth2Client
     throttle_scope = 'login'
+
+
+class PasswordPolicyView(APIView):
+    """
+    GET-only, unauthenticated. Exposes the password rules actually enforced
+    by ComplexityValidator/MinimumLengthValidator (authentication/validators.py)
+    so the frontend's register/reset-password forms can validate against the
+    same single source of truth instead of hardcoding their own copy of
+    these rules, which could otherwise silently drift from what the backend
+    enforces.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        return Response({
+            'min_length': validators.MIN_LENGTH,
+            'special_chars': validators.SPECIAL_CHARS,
+        })
