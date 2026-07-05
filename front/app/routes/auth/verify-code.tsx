@@ -2,19 +2,17 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Loader2, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
-import { apiFetch } from "~/lib/api";
-import { setUser } from "~/lib/auth";
+import { useVerifyOtp, useResendOtp } from "~/features/auth/hooks";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function VerifyCode() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -33,46 +31,20 @@ export default function VerifyCode() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const verifyMutation = useMutation({
-    mutationFn: (code: string) =>
-      apiFetch("/verify-otp/", {
-        method: "POST",
-        body: JSON.stringify({ email, code }),
-      }),
-    onSuccess: (data) => {
-      setUser(data.user);
-      if (data.user.language && i18n.language !== data.user.language) {
-        i18n.changeLanguage(data.user.language);
-      }
-      navigate("/");
-    },
-    onError: () => {
-      setError(t("auth.verifyCode.error"));
-      setDigits(Array(CODE_LENGTH).fill(""));
-      inputRefs.current[0]?.focus();
-    },
-  });
-
-  const resendMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/resend-otp/", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      }),
-    onSuccess: () => {
-      setResendMessage(t("auth.verifyCode.resendSuccess"));
-      setError(null);
-      setCooldown(RESEND_COOLDOWN_SECONDS);
-    },
-    onError: () => {
-      setResendMessage(t("auth.verifyCode.resendError"));
-    },
-  });
+  const verifyMutation = useVerifyOtp();
+  const resendMutation = useResendOtp();
 
   const submitCode = (code: string) => {
     if (code.length !== CODE_LENGTH || verifyMutation.isPending) return;
     setError(null);
-    verifyMutation.mutate(code);
+    verifyMutation.mutate({ email, code }, {
+      onSuccess: () => navigate("/"),
+      onError: () => {
+        setError(t("auth.verifyCode.error"));
+        setDigits(Array(CODE_LENGTH).fill(""));
+        inputRefs.current[0]?.focus();
+      },
+    });
   };
 
   const handleChange = (index: number, value: string) => {
@@ -177,7 +149,18 @@ export default function VerifyCode() {
             variant="outline"
             className="w-full rounded-xl py-6 font-semibold disabled:opacity-50"
             disabled={cooldown > 0 || resendMutation.isPending}
-            onClick={() => resendMutation.mutate()}
+            onClick={() =>
+              resendMutation.mutate(email, {
+                onSuccess: () => {
+                  setResendMessage(t("auth.verifyCode.resendSuccess"));
+                  setError(null);
+                  setCooldown(RESEND_COOLDOWN_SECONDS);
+                },
+                onError: () => {
+                  setResendMessage(t("auth.verifyCode.resendError"));
+                },
+              })
+            }
           >
             {resendMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {cooldown > 0

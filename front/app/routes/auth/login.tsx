@@ -2,19 +2,18 @@ import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { apiFetch, type ApiError } from "~/lib/api";
-import { setUser } from "~/lib/auth";
+import type { ApiError } from "~/lib/api";
+import { useLogin } from "~/features/auth/hooks";
 import { GoogleLoginButton } from "~/components/auth/google-login-button";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 export default function Login() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,35 +21,21 @@ export default function Login() {
 
   const googleClientId = useMemo(() => import.meta.env.VITE_GOOGLE_CLIENT_ID || "", []);
 
-  const loginMutation = useMutation({
-    mutationFn: (credentials: any) => 
-      apiFetch("/login/", {
-        method: "POST",
-        body: JSON.stringify(credentials),
-      }),
-    onSuccess: (data) => {
-      setUser(data.user);
-      
-      // Update local language if it differs from what's stored in user profile
-      if (data.user.language && i18n.language !== data.user.language) {
-        i18n.changeLanguage(data.user.language);
-      }
-      
-      navigate("/");
-    },
-    onError: (err: ApiError) => {
-      if (err.code === "email_not_verified") {
-        navigate("/auth/verify-code", { state: { email } });
-      } else {
-        setError(t("auth.login.error"));
-      }
-    }
-  });
+  const loginMutation = useLogin();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    loginMutation.mutate({ email, password });
+    loginMutation.mutate({ email, password }, {
+      onSuccess: () => navigate("/"),
+      onError: (err: ApiError) => {
+        if (err.code === "email_not_verified") {
+          navigate("/auth/verify-code", { state: { email } });
+        } else {
+          setError(t("auth.login.error"));
+        }
+      },
+    });
   };
 
   return (

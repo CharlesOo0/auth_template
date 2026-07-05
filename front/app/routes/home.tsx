@@ -3,9 +3,8 @@ import { motion } from "framer-motion";
 import { Rocket, Shield, Zap, CheckCircle, ArrowRight, Github, Play, Languages, LogOut, User as UserIcon } from "lucide-react";
 import demoVideo from "../assets/demo.mp4";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
-import { getUser, clearAuthData, type User } from "~/lib/auth";
-import { apiFetch } from "~/lib/api";
+import { useAuth } from "~/context/auth-context";
+import { useLogout } from "~/features/auth/hooks";
 
 /**
  * Home page modern and slick showcase.
@@ -13,25 +12,13 @@ import { apiFetch } from "~/lib/api";
 export default function Home() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const [user, setUserState] = useState<User | null>(null);
+  const { user } = useAuth();
+  const logoutMutation = useLogout();
 
-  useEffect(() => {
-    const storedUser = getUser();
-    if (storedUser) {
-      setUserState(storedUser);
-    }
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await apiFetch("/logout/", { method: "POST" });
-    } catch {
-      // Even if the server call fails (e.g. already-expired session),
-      // still clear local state so the UI reflects a logged-out user.
-    }
-    clearAuthData();
-    setUserState(null);
-    navigate("/");
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => navigate("/"),
+    });
   };
 
   const toggleLanguage = () => {

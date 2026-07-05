@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -11,8 +10,8 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { apiFetch, type ApiError } from "~/lib/api";
-import { usePasswordPolicy, specialCharsPattern } from "~/lib/password-policy";
+import type { ApiError } from "~/lib/api";
+import { useRegister, usePasswordPolicy, specialCharsPattern } from "~/features/auth/hooks";
 import { GoogleLoginButton } from "~/components/auth/google-login-button";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
@@ -55,37 +54,35 @@ export default function Register() {
     },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: (data: any) =>
-      apiFetch("/registration/", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-    onSuccess: (_data, variables) => {
-      navigate("/auth/verify-code", { state: { email: variables.email } });
-    },
-    onError: (err: ApiError) => {
-      if (err.fields.email?.length) {
-        setServerError(err.fields.email.join(" "));
-      } else if (err.fields.username?.length) {
-        setServerError(err.fields.username.join(" "));
-      } else if (err.fields.non_field_errors?.length) {
-        setServerError(err.fields.non_field_errors.join(" "));
-      } else {
-        setServerError(err.detail || t("auth.register.error"));
-      }
-    }
-  });
+  const registerMutation = useRegister();
 
   const onSubmit = (data: RegisterValues) => {
     setServerError(null);
-    registerMutation.mutate({
-      username: data.username,
-      email: data.email,
-      password1: data.password,
-      password2: data.confirmPassword,
-      language: i18n.language || 'fr',
-    });
+    registerMutation.mutate(
+      {
+        username: data.username,
+        email: data.email,
+        password1: data.password,
+        password2: data.confirmPassword,
+        language: i18n.language || 'fr',
+      },
+      {
+        onSuccess: () => {
+          navigate("/auth/verify-code", { state: { email: data.email } });
+        },
+        onError: (err: ApiError) => {
+          if (err.fields.email?.length) {
+            setServerError(err.fields.email.join(" "));
+          } else if (err.fields.username?.length) {
+            setServerError(err.fields.username.join(" "));
+          } else if (err.fields.non_field_errors?.length) {
+            setServerError(err.fields.non_field_errors.join(" "));
+          } else {
+            setServerError(err.detail || t("auth.register.error"));
+          }
+        },
+      },
+    );
   };
 
   return (

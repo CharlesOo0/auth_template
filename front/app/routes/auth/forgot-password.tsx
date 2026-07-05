@@ -2,12 +2,11 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
-import { apiFetch } from "~/lib/api";
+import { useRequestPasswordReset } from "~/features/auth/hooks";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 export default function ForgotPassword() {
@@ -16,24 +15,15 @@ export default function ForgotPassword() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const requestResetMutation = useMutation({
-    mutationFn: () =>
-      apiFetch("/password/reset/", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      }),
-    onSuccess: () => {
-      setSuccess(true);
-    },
-    onError: () => {
-      setError(t("auth.forgotPassword.error"));
-    },
-  });
+  const requestResetMutation = useRequestPasswordReset();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    requestResetMutation.mutate();
+    requestResetMutation.mutate(email, {
+      onSuccess: () => setSuccess(true),
+      onError: () => setError(t("auth.forgotPassword.error")),
+    });
   };
 
   return (

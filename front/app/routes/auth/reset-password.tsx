@@ -2,7 +2,6 @@ import { Link, useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,8 +9,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
-import { apiFetch } from "~/lib/api";
-import { usePasswordPolicy, specialCharsPattern } from "~/lib/password-policy";
+import { useConfirmPasswordReset, usePasswordPolicy, specialCharsPattern } from "~/features/auth/hooks";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 export default function ResetPassword() {
@@ -45,28 +43,22 @@ export default function ResetPassword() {
     defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
-  const resetPasswordMutation = useMutation({
-    mutationFn: (data: ResetPasswordValues) =>
-      apiFetch("/password/reset/confirm/", {
-        method: "POST",
-        body: JSON.stringify({
-          uid,
-          token,
-          new_password1: data.newPassword,
-          new_password2: data.confirmPassword,
-        }),
-      }),
-    onSuccess: () => {
-      setSuccess(true);
-    },
-    onError: () => {
-      setServerError(t("auth.resetPassword.error"));
-    },
-  });
+  const resetPasswordMutation = useConfirmPasswordReset();
 
   const onSubmit = (data: ResetPasswordValues) => {
     setServerError(null);
-    resetPasswordMutation.mutate(data);
+    resetPasswordMutation.mutate(
+      {
+        uid,
+        token,
+        new_password1: data.newPassword,
+        new_password2: data.confirmPassword,
+      },
+      {
+        onSuccess: () => setSuccess(true),
+        onError: () => setServerError(t("auth.resetPassword.error")),
+      },
+    );
   };
 
   return (

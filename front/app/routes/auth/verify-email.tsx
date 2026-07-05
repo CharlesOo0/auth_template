@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { apiFetch } from "~/lib/api";
+import { useVerifyEmail } from "~/features/auth/hooks";
 import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 export default function VerifyEmail() {
@@ -14,13 +13,7 @@ export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const key = pathKey || searchParams.get("key");
 
-  const { mutate, isSuccess, isError } = useMutation({
-    mutationFn: (key: string) =>
-      apiFetch("/registration/verify-email/", {
-        method: "POST",
-        body: JSON.stringify({ key }),
-      }),
-  });
+  const { mutate, isSuccess, isError } = useVerifyEmail();
 
   const triggeredRef = useRef(false);
   useEffect(() => {

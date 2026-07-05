@@ -1,10 +1,8 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { useMutation } from "@tanstack/react-query";
 import { Chrome, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
-import { apiFetch } from "~/lib/api";
-import { setUser } from "~/lib/auth";
+import { useGoogleLogin as useGoogleLoginMutation } from "~/features/auth/hooks";
 import { useNavigate } from "react-router";
 
 interface GoogleLoginButtonProps {
@@ -13,34 +11,10 @@ interface GoogleLoginButtonProps {
 }
 
 export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const googleMutation = useMutation({
-    mutationFn: (code: string) =>
-      apiFetch("/google/", {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      }),
-    onSuccess: (data) => {
-      setUser(data.user);
-      
-      if (data.user.language && i18n.language !== data.user.language) {
-        i18n.changeLanguage(data.user.language);
-      }
-      
-      if (onSuccess) {
-        onSuccess(data.user);
-      } else {
-        navigate("/");
-      }
-    },
-    onError: (err) => {
-      if (onError) {
-        onError(err);
-      }
-    },
-  });
+  const googleMutation = useGoogleLoginMutation();
 
   const loginWithGoogle = useGoogleLogin({
     // Authorization-code flow: the browser only ever sees a short-lived,
@@ -50,7 +24,20 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
     // why the redirect_uri must be that literal string for this popup flow.
     flow: "auth-code",
     onSuccess: (codeResponse) => {
-      googleMutation.mutate(codeResponse.code);
+      googleMutation.mutate(codeResponse.code, {
+        onSuccess: (data) => {
+          if (onSuccess) {
+            onSuccess(data.user);
+          } else {
+            navigate("/");
+          }
+        },
+        onError: (err) => {
+          if (onError) {
+            onError(err);
+          }
+        },
+      });
     },
     onError: (err) => {
       console.error("Google Login Error:", err);

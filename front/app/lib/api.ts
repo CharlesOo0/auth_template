@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import { clearAuthData } from "./auth";
+import { clearStoredUser } from "~/features/auth/storage";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
@@ -82,7 +82,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, _ret
   // that still 401s after refreshing can't loop forever.
   if (response.status === 401 && !isAuthEndpoint) {
     if (_retried) {
-      clearAuthData();
+      clearStoredUser();
       if (typeof window !== "undefined" && !window.location.pathname.includes("/auth/")) {
         window.location.href = "/auth/login";
       }
@@ -102,7 +102,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, _ret
       return apiFetch(endpoint, options, true);
     }
 
-    clearAuthData();
+    clearStoredUser();
     if (typeof window !== "undefined" && !window.location.pathname.includes("/auth/")) {
       window.location.href = "/auth/login";
     }

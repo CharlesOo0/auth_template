@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AuthProvider } from "~/context/auth-context";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -55,7 +56,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={googleClientId || "dummy"}>
-        <Outlet />
+        <AuthProvider>
+          <Outlet />
+        </AuthProvider>
       </GoogleOAuthProvider>
     </QueryClientProvider>
   );
