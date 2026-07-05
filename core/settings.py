@@ -41,6 +41,18 @@ if not SECRET_KEY:
             'SECRET_KEY environment variable must be set when DEBUG=False.'
         )
 
+# JWT signing uses its own key rather than reusing SECRET_KEY, so a JWT leak
+# (or rotation) doesn't also force rotating sessions/CSRF/password-reset
+# tokens, and vice versa. Same fail-closed pattern as SECRET_KEY above.
+JWT_SIGNING_KEY = os.getenv('JWT_SIGNING_KEY')
+if not JWT_SIGNING_KEY:
+    if DEBUG:
+        JWT_SIGNING_KEY = SECRET_KEY
+    else:
+        raise ImproperlyConfigured(
+            'JWT_SIGNING_KEY environment variable must be set when DEBUG=False.'
+        )
+
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
 
 
@@ -164,6 +176,33 @@ DATABASES = {
 }
 
 
+# Cache
+# OTP codes (authentication/otp.py) and DRF's request throttling both rely on
+# the default cache being shared across every process serving the app - a
+# per-process LocMemCache (Django's default with no REDIS_URL) silently
+# breaks both features as soon as more than one worker/container is running,
+# since each process would keep its own copy of the OTP codes/throttle
+# counters. Falls back to LocMemCache only when no REDIS_URL is set, which is
+# fine for a single-process local `runserver`.
+REDIS_URL = os.getenv('REDIS_URL')
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -259,7 +298,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': JWT_SIGNING_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
