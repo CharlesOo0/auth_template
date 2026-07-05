@@ -282,9 +282,11 @@ REST_FRAMEWORK = {
         'login': '5/min',
         'registration': '5/min',
         'verify_otp': '20/min',
-        # Actual window is hardcoded to 3/10min in views.OTPResendThrottle -
-        # this value only needs to exist so DRF doesn't disable throttling.
+        # Actual windows are hardcoded in views.OTPResendThrottle (3/10min per
+        # email) and views.OTPResendIPThrottle (20/10min per IP) - these
+        # values only need to exist so DRF doesn't disable throttling.
         'resend_otp': '3/min',
+        'resend_otp_ip': '20/min',
         # dj-rest-auth's own built-in views (logout, password reset/change,
         # user details) default to this scope - give it a looser rate so
         # enabling ScopedRateThrottle globally doesn't break them.

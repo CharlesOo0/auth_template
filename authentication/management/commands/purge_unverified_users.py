@@ -29,6 +29,7 @@ class Command(BaseCommand):
         cutoff = timezone.now() - timedelta(hours=options['older_than_hours'])
         stale_users = User.objects.filter(
             date_joined__lt=cutoff,
+            emailaddress__primary=True,
             emailaddress__verified=False,
         )
 

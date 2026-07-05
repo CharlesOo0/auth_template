@@ -79,6 +79,21 @@ class OTPResendThrottle(SimpleRateThrottle):
         return (3, 10 * 60)
 
 
+class OTPResendIPThrottle(SimpleRateThrottle):
+    """
+    Per-IP cap alongside OTPResendThrottle's per-email one, so a single IP
+    can't mail-bomb many different addresses each staying under the
+    per-email limit.
+    """
+    scope = 'resend_otp_ip'
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {'scope': self.scope, 'ident': self.get_ident(request)}
+
+    def parse_rate(self, rate):
+        return (20, 10 * 60)
+
+
 class VerifyOTPView(APIView):
     """
     POST {email, code}. On success, marks the e-mail verified, activates the
@@ -138,7 +153,7 @@ class ResendOTPView(APIView):
     whether an e-mail address is registered.
     """
     permission_classes = [AllowAny]
-    throttle_classes = [OTPResendThrottle]
+    throttle_classes = [OTPResendThrottle, OTPResendIPThrottle]
 
     def post(self, request, *args, **kwargs):
         email = (request.data.get('email') or '').strip().lower()

@@ -1,6 +1,7 @@
+import { useEffect, useRef } from "react";
 import { useParams, Link, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -13,16 +14,22 @@ export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const key = pathKey || searchParams.get("key");
 
-  const { isLoading, isSuccess, isError } = useQuery({
-    queryKey: ["verify-email", key],
-    queryFn: () => 
+  const { mutate, isSuccess, isError } = useMutation({
+    mutationFn: (key: string) =>
       apiFetch("/registration/verify-email/", {
         method: "POST",
         body: JSON.stringify({ key }),
       }),
-    enabled: !!key,
-    retry: false,
   });
+
+  const triggeredRef = useRef(false);
+  useEffect(() => {
+    if (!key || triggeredRef.current) return;
+    triggeredRef.current = true;
+    mutate(key);
+  }, [key, mutate]);
+
+  const isLoading = !!key && !isSuccess && !isError;
 
   return (
     <AuthCardShell
