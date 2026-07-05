@@ -14,9 +14,14 @@ urlpatterns = [
         email_confirmation_redirect,
         name='account_confirm_email',
     ),
-    
+
+    # Throttled overrides - must come before the dj_rest_auth includes below
+    # so they take precedence over the default (unthrottled) views.
+    path('login/', views.LoginView.as_view(), name='rest_login'),
+    path('registration/', views.RegisterView.as_view(), name='rest_register'),
+    path('google/', views.GoogleLogin.as_view(), name='google_login'),
+
     path('', include('dj_rest_auth.urls')),
     path('registration/', include('dj_rest_auth.registration.urls')),
-    path('google/', views.GoogleLogin.as_view(), name='google_login'),
     path('account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent'),
 ]

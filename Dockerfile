@@ -15,6 +15,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
+# SECRET_KEY is only needed here so settings.py can load (DEBUG defaults to
+# False with no .env present at build time); it's not the runtime key.
+RUN SECRET_KEY=build-time-only python manage.py collectstatic --noinput
+
+RUN useradd --create-home --shell /bin/bash appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

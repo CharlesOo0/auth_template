@@ -5,6 +5,7 @@ import demoVideo from "../assets/demo.mp4";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { getUser, clearAuthData, type User } from "~/lib/auth";
+import { apiFetch } from "~/lib/api";
 
 /**
  * Home page modern and slick showcase.
@@ -21,7 +22,13 @@ export default function Home() {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch("/logout/", { method: "POST" });
+    } catch {
+      // Even if the server call fails (e.g. already-expired session),
+      // still clear local state so the UI reflects a logged-out user.
+    }
     clearAuthData();
     setUserState(null);
     navigate("/");

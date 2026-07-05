@@ -11,7 +11,7 @@ function getCookie(name: string): string | null {
   return null;
 }
 
-export async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
+export async function apiFetch(endpoint: string, options: RequestInit = {}, _retried = false): Promise<any> {
   const language = i18next.language || "fr";
   const csrfToken = getCookie("csrftoken");
 
@@ -51,11 +51,20 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
         return response.json();
       }
 
-      // Tentative de refresh automatique
+      // Tentative de refresh automatique (une seule fois, pour éviter une
+      // boucle infinie si la requête réessayée échoue encore en 401).
+      if (_retried) {
+        clearAuthData();
+        if (typeof window !== "undefined" && !window.location.pathname.includes("/auth/")) {
+          window.location.href = "/auth/login";
+        }
+        throw new Error("Session expired");
+      }
+
       try {
         const refreshResponse = await fetch(`${API_URL}/token/refresh/`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             ...(csrfToken ? { "X-CSRFToken": csrfToken } : {}),
           },
@@ -63,8 +72,8 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}): Pro
         });
 
         if (refreshResponse.ok) {
-          // On réessaie la requête initiale
-          return apiFetch(endpoint, options);
+          // On réessaie la requête initiale, une seule fois
+          return apiFetch(endpoint, options, true);
         } else {
           clearAuthData();
           if (typeof window !== "undefined" && !window.location.pathname.includes("/auth/")) {

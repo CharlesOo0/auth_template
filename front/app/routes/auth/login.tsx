@@ -10,7 +10,7 @@ import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
-import { setTokens, setUser } from "~/lib/auth";
+import { setUser } from "~/lib/auth";
 import { GoogleLoginButton } from "~/components/auth/google-login-button";
 
 export default function Login() {
@@ -29,7 +29,6 @@ export default function Login() {
         body: JSON.stringify(credentials),
       }),
     onSuccess: (data) => {
-      setTokens(data.access, data.refresh);
       setUser(data.user);
       
       // Update local language if it differs from what's stored in user profile
@@ -40,7 +39,7 @@ export default function Login() {
       navigate("/");
     },
     onError: (err: any) => {
-      if (err.non_field_errors?.[0]?.includes("verified")) {
+      if (err.code?.[0] === "email_not_verified") {
         setError(t("auth.login.notVerified"));
       } else {
         setError(t("auth.login.error"));

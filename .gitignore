@@ -17,3 +17,7 @@ front/.env
 /front/.react-router/
 /db.sqlite3
 /.venv/
+/CLAUDE.md
+/staticfiles/
+__pycache__/
+*.pyc

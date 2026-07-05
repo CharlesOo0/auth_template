@@ -28,14 +28,3 @@ export const setUser = (user: User | null) => {
     localStorage.removeItem("user");
   }
 };
-
-/**
- * setTokens is now a dummy function because tokens are handled via HttpOnly cookies.
- * We keep it for backward compatibility in the code.
- */
-export const setTokens = (access?: string, refresh?: string) => {
-  // Les tokens sont maintenant gérés par les cookies HttpOnly
-  if (typeof window !== "undefined") {
-    console.log("Tokens are managed by HttpOnly cookies");
-  }
-};

@@ -4,7 +4,7 @@ import { Chrome, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "~/components/ui/button";
 import { apiFetch } from "~/lib/api";
-import { setUser, setTokens } from "~/lib/auth";
+import { setUser } from "~/lib/auth";
 import { useNavigate } from "react-router";
 
 interface GoogleLoginButtonProps {
@@ -23,9 +23,6 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
         body: JSON.stringify({ access_token: accessToken }),
       }),
     onSuccess: (data) => {
-      if (data.access && data.refresh) {
-        setTokens(data.access, data.refresh);
-      }
       setUser(data.user);
       
       if (data.user.language && i18n.language !== data.user.language) {
