@@ -76,7 +76,7 @@ class RegisterSerializer(DefaultRegisterSerializer):
         user.language = language
         user.save()
         
-        # On active la langue pour la requête actuelle afin que l'e-mail de confirmation
-        # envoyé par allauth (via des signaux ou dans le save) utilise la bonne langue.
+        # Activate the language for the current request so the confirmation
+        # e-mail sent by allauth (via signals or within save()) uses it.
         translation.activate(language)
         return user

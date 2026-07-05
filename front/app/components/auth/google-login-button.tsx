@@ -17,10 +17,10 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
   const navigate = useNavigate();
 
   const googleMutation = useMutation({
-    mutationFn: (accessToken: string) =>
+    mutationFn: (code: string) =>
       apiFetch("/google/", {
         method: "POST",
-        body: JSON.stringify({ access_token: accessToken }),
+        body: JSON.stringify({ code }),
       }),
     onSuccess: (data) => {
       setUser(data.user);
@@ -43,8 +43,14 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
   });
 
   const loginWithGoogle = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      googleMutation.mutate(tokenResponse.access_token);
+    // Authorization-code flow: the browser only ever sees a short-lived,
+    // single-use code, never a raw access token. The backend
+    // (authentication/views.py::GoogleLogin) exchanges it server-side using
+    // the app's client secret - see callback_url='postmessage' there for
+    // why the redirect_uri must be that literal string for this popup flow.
+    flow: "auth-code",
+    onSuccess: (codeResponse) => {
+      googleMutation.mutate(codeResponse.code);
     },
     onError: (err) => {
       console.error("Google Login Error:", err);
@@ -52,7 +58,6 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
         onError(err);
       }
     },
-    flow: "implicit",
   });
 
   return (

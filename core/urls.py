@@ -26,7 +26,7 @@ def email_confirmation_redirect(request, key):
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Redirection ultra-prioritaire au niveau racine (plus souple)
+    # Highest-priority redirect, matched at the root (more lenient regex)
     re_path(
         r'^api/registration/account-confirm-email/(?P<key>.+)/$',
         email_confirmation_redirect,

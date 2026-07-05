@@ -161,7 +161,13 @@ class ResendOTPView(APIView):
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = settings.FRONTEND_URL
+    # The frontend uses @react-oauth/google's popup-based auth-code flow
+    # (see google-login-button.tsx), which obtains an authorization code
+    # with no real page redirect involved. Google's token endpoint requires
+    # such codes to be exchanged with the literal string "postmessage" as
+    # redirect_uri, not an actual URL - using settings.FRONTEND_URL here
+    # would make every code exchange fail with redirect_uri_mismatch.
+    callback_url = 'postmessage'
     client_class = OAuth2Client
     throttle_scope = 'login'
 

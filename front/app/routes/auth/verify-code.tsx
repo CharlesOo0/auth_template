@@ -1,5 +1,4 @@
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
-import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Loader2, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +8,7 @@ import { Input } from "~/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { apiFetch } from "~/lib/api";
 import { setUser } from "~/lib/auth";
+import { AuthCardShell } from "~/components/auth/auth-card-shell";
 
 const CODE_LENGTH = 6;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -112,96 +112,87 @@ export default function VerifyCode() {
 
   if (!email) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
-          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-center p-8">
-            <XCircle className="w-16 h-16 text-destructive mx-auto mb-6" />
-            <CardTitle className="text-2xl mb-2">{t("auth.verifyCode.title")}</CardTitle>
-            <p className="text-muted-foreground mb-8">{t("auth.verifyCode.missingEmail")}</p>
-            <Button asChild className="w-full rounded-xl py-6">
-              <Link to="/auth/register">{t("auth.verifyCode.backToRegister")}</Link>
-            </Button>
-          </Card>
-        </motion.div>
-      </div>
+      <AuthCardShell
+        showBackToHome={false}
+        motionProps={{ initial: { opacity: 0, scale: 0.9 }, animate: { opacity: 1, scale: 1 } }}
+      >
+        <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-center p-8">
+          <XCircle className="w-16 h-16 text-destructive mx-auto mb-6" />
+          <CardTitle className="text-2xl mb-2">{t("auth.verifyCode.title")}</CardTitle>
+          <p className="text-muted-foreground mb-8">{t("auth.verifyCode.missingEmail")}</p>
+          <Button asChild className="w-full rounded-xl py-6">
+            <Link to="/auth/register">{t("auth.verifyCode.backToRegister")}</Link>
+          </Button>
+        </Card>
+      </AuthCardShell>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] -z-10" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] -z-10" />
+    <AuthCardShell showBackToHome={false}>
+      <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
+        <CardHeader className="space-y-1 text-center pt-8">
+          <CardTitle className="text-3xl font-bold tracking-tight">
+            {t("auth.verifyCode.title")}
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            {t("auth.verifyCode.subtitle", { email })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 px-8">
+          <div className="flex justify-center gap-2">
+            {digits.map((digit, index) => (
+              <Input
+                key={index}
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={1}
+                value={digit}
+                disabled={verifyMutation.isPending}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onPaste={handlePaste}
+                className="w-12 h-14 text-center text-xl font-semibold rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
+              />
+            ))}
+          </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
-          <CardHeader className="space-y-1 text-center pt-8">
-            <CardTitle className="text-3xl font-bold tracking-tight">
-              {t("auth.verifyCode.title")}
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {t("auth.verifyCode.subtitle", { email })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6 px-8">
-            <div className="flex justify-center gap-2">
-              {digits.map((digit, index) => (
-                <Input
-                  key={index}
-                  ref={(el) => {
-                    inputRefs.current[index] = el;
-                  }}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={1}
-                  value={digit}
-                  disabled={verifyMutation.isPending}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                  className="w-12 h-14 text-center text-xl font-semibold rounded-xl border-border/50 bg-background/50 focus:ring-primary/20"
-                />
-              ))}
+          {verifyMutation.isPending && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {t("auth.verifyCode.verifying")}
             </div>
+          )}
 
-            {verifyMutation.isPending && (
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t("auth.verifyCode.verifying")}
-              </div>
-            )}
+          {error && <p className="text-sm font-medium text-destructive text-center">{error}</p>}
+          {resendMessage && !error && (
+            <p className="text-sm font-medium text-muted-foreground text-center">{resendMessage}</p>
+          )}
 
-            {error && <p className="text-sm font-medium text-destructive text-center">{error}</p>}
-            {resendMessage && !error && (
-              <p className="text-sm font-medium text-muted-foreground text-center">{resendMessage}</p>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full rounded-xl py-6 font-semibold disabled:opacity-50"
-              disabled={cooldown > 0 || resendMutation.isPending}
-              onClick={() => resendMutation.mutate()}
-            >
-              {resendMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {cooldown > 0
-                ? t("auth.verifyCode.resendIn", { seconds: cooldown })
-                : t("auth.verifyCode.resend")}
-            </Button>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4 pb-8">
-            <p className="text-sm text-muted-foreground text-center">
-              <Link to="/auth/login" className="text-primary font-semibold hover:underline underline-offset-4">
-                {t("auth.verify.backToLogin")}
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </motion.div>
-    </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-xl py-6 font-semibold disabled:opacity-50"
+            disabled={cooldown > 0 || resendMutation.isPending}
+            onClick={() => resendMutation.mutate()}
+          >
+            {resendMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {cooldown > 0
+              ? t("auth.verifyCode.resendIn", { seconds: cooldown })
+              : t("auth.verifyCode.resend")}
+          </Button>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4 pb-8">
+          <p className="text-sm text-muted-foreground text-center">
+            <Link to="/auth/login" className="text-primary font-semibold hover:underline underline-offset-4">
+              {t("auth.verify.backToLogin")}
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    </AuthCardShell>
   );
 }

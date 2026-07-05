@@ -9,7 +9,7 @@ def email_confirmation_redirect(request, key):
     return redirect(f"{settings.FRONTEND_URL}/auth/verify-email/{key}")
 
 urlpatterns = [
-    # Priorité à la redirection vers le frontend
+    # High-priority redirect to the frontend
     re_path(
         r'^registration/account-confirm-email/(?P<key>[-:\w]+)/$',
         email_confirmation_redirect,

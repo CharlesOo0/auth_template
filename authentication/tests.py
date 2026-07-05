@@ -14,7 +14,7 @@ from allauth.account.utils import user_pk_to_url_str
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 
-from authentication import otp, validators
+from authentication import otp, validators, views
 from authentication.serializers import UserSerializer
 
 User = get_user_model()
@@ -312,6 +312,41 @@ class GoogleOAuthTests(APITestCase):
             response = self.client.post('/api/google/', {'access_token': 'fake-token'})
 
         self.assertLess(response.status_code, 500)
+
+    def test_code_flow_exchanges_code_with_postmessage_redirect(self):
+        # The frontend uses @react-oauth/google's popup-based auth-code flow
+        # (see google-login-button.tsx), which requires the code to be
+        # exchanged with the literal redirect_uri "postmessage" - see
+        # GoogleLogin.callback_url in views.py. Mocks the actual HTTP call
+        # to Google's token endpoint (OAuth2Client.get_access_token) since
+        # there's no real Google client to exchange a code with in tests.
+        email = 'codeflow@example.com'
+        user = User(email=email, username='codeflowuser')
+        user.set_unusable_password()
+        account = SocialAccount(provider='google', uid='google-uid-code', extra_data={'email': email})
+        request = RequestFactory().post('/api/google/')
+        provider = get_social_adapter().get_provider(request, provider='google')
+        fake_login = SocialLogin(
+            user=user,
+            account=account,
+            provider=provider,
+            email_addresses=[EmailAddress(email=email, verified=True, primary=True)],
+        )
+
+        with patch(
+            'allauth.socialaccount.providers.oauth2.client.OAuth2Client.get_access_token',
+            return_value={'access_token': 'exchanged-fake-token'},
+        ) as mock_get_access_token:
+            with patch(
+                'dj_rest_auth.registration.serializers.SocialLoginSerializer.get_social_login',
+                return_value=fake_login,
+            ):
+                response = self.client.post('/api/google/', {'code': 'fake-auth-code'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('jwt-auth', response.cookies)
+        mock_get_access_token.assert_called_once_with('fake-auth-code')
+        self.assertEqual(views.GoogleLogin.callback_url, 'postmessage')
 
 
 class CORSHeaderTests(APITestCase):
