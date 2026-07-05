@@ -20,6 +20,8 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='rest_login'),
     path('registration/', views.RegisterView.as_view(), name='rest_register'),
     path('google/', views.GoogleLogin.as_view(), name='google_login'),
+    path('verify-otp/', views.VerifyOTPView.as_view(), name='verify_otp'),
+    path('resend-otp/', views.ResendOTPView.as_view(), name='resend_otp'),
 
     path('', include('dj_rest_auth.urls')),
     path('registration/', include('dj_rest_auth.registration.urls')),

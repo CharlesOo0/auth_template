@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
@@ -5,7 +6,11 @@ from django.utils import translation
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 from dj_rest_auth.registration.serializers import RegisterSerializer as DefaultRegisterSerializer
-from dj_rest_auth.serializers import LoginSerializer as DefaultLoginSerializer
+from dj_rest_auth.serializers import (
+    LoginSerializer as DefaultLoginSerializer,
+    PasswordResetSerializer as DefaultPasswordResetSerializer,
+)
+from allauth.account.utils import user_pk_to_url_str
 
 User = get_user_model()
 
@@ -37,6 +42,22 @@ class LoginSerializer(DefaultLoginSerializer):
                     'code': 'email_not_verified',
                 })
             raise
+
+
+class PasswordResetSerializer(DefaultPasswordResetSerializer):
+    """
+    dj-rest-auth's default reset e-mail links to a Django-rendered backend
+    page (reverse('password_reset_confirm')). This app has no such page -
+    password reset is completed on the frontend, which then POSTs to
+    /api/password/reset/confirm/ - so the emailed link must point there
+    instead, mirroring the email-confirmation redirect already in place.
+    """
+    def get_email_options(self):
+        def url_generator(request, user, temp_key):
+            uid = user_pk_to_url_str(user)
+            return f'{settings.FRONTEND_URL}/auth/reset-password/{uid}/{temp_key}/'
+
+        return {'url_generator': url_generator}
 
 
 class RegisterSerializer(DefaultRegisterSerializer):

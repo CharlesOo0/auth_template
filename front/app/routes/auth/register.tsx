@@ -1,7 +1,7 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -13,12 +13,11 @@ import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { apiFetch } from "~/lib/api";
-import { setUser } from "~/lib/auth";
 import { GoogleLoginButton } from "~/components/auth/google-login-button";
 
 export default function Register() {
   const { t, i18n } = useTranslation();
-  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const googleClientId = useMemo(() => import.meta.env.VITE_GOOGLE_CLIENT_ID || "", []);
@@ -55,13 +54,13 @@ export default function Register() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: (data: any) => 
+    mutationFn: (data: any) =>
       apiFetch("/registration/", {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      setSuccess(true);
+    onSuccess: (_data, variables) => {
+      navigate("/auth/verify-code", { state: { email: variables.email } });
     },
     onError: (err: any) => {
       if (err.email && Array.isArray(err.email)) {
@@ -86,29 +85,6 @@ export default function Register() {
       language: i18n.language || 'fr',
     });
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
-          <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden text-center p-8">
-            <CheckCircle2 className="w-16 h-16 text-primary mx-auto mb-6" />
-            <CardTitle className="text-2xl mb-2">{t("auth.register.success")}</CardTitle>
-            <p className="text-muted-foreground mb-8">
-              {t("auth.register.subtitle")}
-            </p>
-            <Button asChild className="w-full rounded-xl py-6">
-              <Link to="/auth/login">{t("auth.register.loginLink")}</Link>
-            </Button>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden px-4">

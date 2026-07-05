@@ -40,7 +40,7 @@ export default function Login() {
     },
     onError: (err: any) => {
       if (err.code?.[0] === "email_not_verified") {
-        setError(t("auth.login.notVerified"));
+        navigate("/auth/verify-code", { state: { email } });
       } else {
         setError(t("auth.login.error"));
       }
@@ -99,6 +99,12 @@ export default function Login() {
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">{t("auth.login.passwordLabel")}</Label>
+                  <Link
+                    to="/auth/forgot-password"
+                    className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {t("auth.login.forgotPassword")}
+                  </Link>
                 </div>
                 <Input
                   id="password"

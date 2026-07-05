@@ -22,7 +22,8 @@
       "noAccount": "Pas encore de compte ?",
       "registerLink": "S'inscrire",
       "error": "Email ou mot de passe incorrect.",
-      "notVerified": "Veuillez vérifier votre email avant de vous connecter."
+      "notVerified": "Veuillez vérifier votre email avant de vous connecter.",
+      "forgotPassword": "Mot de passe oublié ?"
     },
     "register": {
       "title": "Créer un compte",
@@ -42,6 +43,39 @@
       "loading": "Vérification en cours...",
       "success": "Votre email a été vérifié avec succès !",
       "error": "Lien de vérification invalide ou expiré.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "verifyCode": {
+      "title": "Vérifiez votre email",
+      "subtitle": "Entrez le code à 6 chiffres envoyé à {{email}}",
+      "submit": "Vérifier",
+      "verifying": "Vérification en cours...",
+      "error": "Ce code est invalide ou a expiré.",
+      "missingEmail": "Aucune adresse email à vérifier. Veuillez vous réinscrire.",
+      "resend": "Renvoyer le code",
+      "resendIn": "Renvoyer le code dans {{seconds}}s",
+      "resendSuccess": "Un nouveau code a été envoyé.",
+      "resendError": "Une erreur est survenue. Veuillez réessayer.",
+      "backToRegister": "Retour à l'inscription"
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Entrez votre adresse email et nous vous enverrons un lien de réinitialisation",
+      "submit": "Envoyer le lien",
+      "success": "Si un compte existe pour cette adresse, vous recevrez un email avec les instructions.",
+      "error": "Une erreur est survenue. Veuillez réessayer.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Choisissez un nouveau mot de passe pour votre compte",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "confirmPasswordLabel": "Confirmer le nouveau mot de passe",
+      "submit": "Réinitialiser le mot de passe",
+      "success": "Votre mot de passe a été réinitialisé avec succès !",
+      "error": "Ce lien de réinitialisation est invalide ou a expiré.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "passwordInvalid": "Le mot de passe doit contenir au moins 9 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.",
       "backToLogin": "Retour à la connexion"
     },
     "common": {

@@ -114,6 +114,7 @@ REST_AUTH = {
     'JWT_AUTH_SECURE': not DEBUG,
     'REGISTER_SERIALIZER': 'authentication.serializers.RegisterSerializer',
     'LOGIN_SERIALIZER': 'authentication.serializers.LoginSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'authentication.serializers.PasswordResetSerializer',
 }
 
 MIDDLEWARE = [
@@ -239,6 +240,10 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'login': '5/min',
         'registration': '5/min',
+        'verify_otp': '20/min',
+        # Actual window is hardcoded to 3/10min in views.OTPResendThrottle -
+        # this value only needs to exist so DRF doesn't disable throttling.
+        'resend_otp': '3/min',
         # dj-rest-auth's own built-in views (logout, password reset/change,
         # user details) default to this scope - give it a looser rate so
         # enabling ScopedRateThrottle globally doesn't break them.

@@ -25,13 +25,20 @@ def email_confirmation_redirect(request, key):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+
     # Redirection ultra-prioritaire au niveau racine (plus souple)
     re_path(
         r'^api/registration/account-confirm-email/(?P<key>.+)/$',
         email_confirmation_redirect,
         name='account_confirm_email',
     ),
-    
+
+    # Not used directly by the SPA (the frontend talks to the /api/ endpoints
+    # below), but allauth internally does `reverse('account_signup')` and
+    # similar in a few code paths (e.g. its enumeration-prevention "someone
+    # tried to sign up with your email" notification) - those named routes
+    # must exist or allauth raises NoReverseMatch and 500s.
+    path('accounts/', include('allauth.urls')),
+
     path('api/', include('authentication.urls')),
 ]
