@@ -109,9 +109,5 @@
         }
       }
     }
-  },
-  "dashboard": {
-    "title": "Welcome, {{name}}",
-    "subtitle": "There's nothing here yet, but this is where your dashboard will live."
   }
 }

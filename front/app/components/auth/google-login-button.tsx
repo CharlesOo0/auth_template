@@ -29,7 +29,7 @@ export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps
           if (onSuccess) {
             onSuccess(data.user);
           } else {
-            navigate("/home");
+            navigate("/");
           }
         },
         onError: (err) => {

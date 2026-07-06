@@ -38,7 +38,7 @@ export default function VerifyCode() {
     if (code.length !== CODE_LENGTH || verifyMutation.isPending) return;
     setError(null);
     verifyMutation.mutate({ email, code }, {
-      onSuccess: () => navigate("/home"),
+      onSuccess: () => navigate("/"),
       onError: () => {
         setError(t("auth.verifyCode.error"));
         setDigits(Array(CODE_LENGTH).fill(""));
