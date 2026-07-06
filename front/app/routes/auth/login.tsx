@@ -27,7 +27,7 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     loginMutation.mutate({ email, password }, {
-      onSuccess: () => navigate("/"),
+      onSuccess: () => navigate("/home"),
       onError: (err: ApiError) => {
         if (err.code === "email_not_verified") {
           navigate("/auth/verify-code", { state: { email } });
