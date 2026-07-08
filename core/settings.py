@@ -314,6 +314,11 @@ CORS_ALLOW_CREDENTIALS = True
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 # Social Account Configuration
+# Google credentials come straight from .env (GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET)
+# via the 'APP' key below instead of a SocialApp DB row - so cloning this
+# template and setting up Google login is just filling in .env, no admin/DB
+# step required. If a SocialApp row for 'google' also exists in the DB,
+# allauth will see both and raise MultipleObjectsReturned - delete it.
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -324,6 +329,11 @@ SOCIALACCOUNT_PROVIDERS = {
             'access_type': 'online',
         },
         'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', ''),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', ''),
+            'key': '',
+        },
     }
 }
 
