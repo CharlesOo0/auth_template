@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.cache import cache
 from django.test import RequestFactory
@@ -12,7 +11,7 @@ from rest_framework.test import APITestCase
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from allauth.account.utils import user_pk_to_url_str
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
-from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialLogin
 
 from authentication import otp, validators, views
 from authentication.serializers import UserSerializer
@@ -268,10 +267,6 @@ class PasswordResetTests(APITestCase):
 class GoogleOAuthTests(APITestCase):
     def setUp(self):
         cache.clear()
-        self.app = SocialApp.objects.create(
-            provider='google', name='Google', client_id='test-client-id', secret='test-secret',
-        )
-        self.app.sites.add(Site.objects.get_current())
 
     def test_new_google_user_is_created_and_signed_in(self):
         email = 'newgoogle@example.com'
