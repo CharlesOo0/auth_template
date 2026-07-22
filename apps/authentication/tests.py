@@ -13,8 +13,8 @@ from allauth.account.utils import user_pk_to_url_str
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 
-from authentication import otp, validators, views
-from authentication.serializers import UserSerializer
+from apps.authentication import otp, validators, views
+from apps.authentication.serializers import UserSerializer
 
 User = get_user_model()
 
@@ -215,7 +215,7 @@ class EmailConfirmationRedirectTests(APITestCase):
         # deliberately not wired up - it's unthrottled and would let anyone
         # trigger a working, link-based confirmation email for any address,
         # bypassing the OTP-only verification flow entirely. See
-        # authentication/urls.py.
+        # apps/authentication/urls.py.
         response = self.client.post('/api/registration/resend-email/', {'email': self.user.email})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(len(mail.outbox), 0)

@@ -36,7 +36,7 @@ Other useful commands:
 
 ```bash
 python manage.py test                                          # full test suite
-python manage.py test authentication.tests.SomeTestCase.test_x # single test
+python manage.py test apps.authentication.tests.SomeTestCase.test_x # single test
 python manage.py createsuperuser
 ```
 
@@ -100,7 +100,7 @@ When forking this repo for a new project, check these spots:
 
 - Rename the Django project (`core/`) and update `DJANGO_SETTINGS_MODULE` references if you want a project-specific name instead of `core`.
 - Replace `LANGUAGE_CODE`/`LANGUAGES` in `core/settings.py` and the `front/app/locales/*.json` files with the locales your project actually needs.
-- Review `authentication/models.py` role flags (`is_customer`, `is_administrator`) — extend or replace them to match your project's actual roles.
+- Review `apps/authentication/models.py` role flags (`is_customer`, `is_administrator`) — extend or replace them to match your project's actual roles.
 - Set a real `SECRET_KEY`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, and SMTP credentials per environment — never reuse the `.env.example` placeholders.
 - Point `VITE_GOOGLE_CLIENT_ID` (and the corresponding Google Cloud OAuth client) at your own project, or remove the Google login button/view if not needed.
 

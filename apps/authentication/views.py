@@ -190,7 +190,7 @@ class GoogleLogin(SocialLoginView):
 class PasswordPolicyView(APIView):
     """
     GET-only, unauthenticated. Exposes the password rules actually enforced
-    by ComplexityValidator/MinimumLengthValidator (authentication/validators.py)
+    by ComplexityValidator/MinimumLengthValidator (apps/authentication/validators.py)
     so the frontend's register/reset-password forms can validate against the
     same single source of truth instead of hardcoding their own copy of
     these rules, which could otherwise silently drift from what the backend

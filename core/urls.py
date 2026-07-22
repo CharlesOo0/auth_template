@@ -40,5 +40,5 @@ urlpatterns = [
     # must exist or allauth raises NoReverseMatch and 500s.
     path('accounts/', include('allauth.urls')),
 
-    path('api/', include('authentication.urls')),
+    path('api/', include('apps.authentication.urls')),
 ]

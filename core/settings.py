@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dj_rest_auth.registration',
     # Local apps
-    'authentication',
+    'apps.authentication',
 ]
 
 # Authentication Configuration
@@ -96,7 +96,7 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # Confirmation is done via the frontend's POST to /api/registration/verify-email/
-# (see authentication/urls.py + core/urls.py redirects), so GET requests must not
+# (see apps/authentication/urls.py + core/urls.py redirects), so GET requests must not
 # have side effects (email scanners/prefetchers would otherwise silently consume
 # the confirmation link and log the account in).
 ACCOUNT_CONFIRM_EMAIL_ON_GET = False
@@ -124,9 +124,9 @@ REST_AUTH = {
     'JWT_AUTH_SAMESITE': 'Lax',
     'JWT_AUTH_COOKIE_USE_CSRF': True,
     'JWT_AUTH_SECURE': not DEBUG,
-    'REGISTER_SERIALIZER': 'authentication.serializers.RegisterSerializer',
-    'LOGIN_SERIALIZER': 'authentication.serializers.LoginSerializer',
-    'PASSWORD_RESET_SERIALIZER': 'authentication.serializers.PasswordResetSerializer',
+    'REGISTER_SERIALIZER': 'apps.authentication.serializers.RegisterSerializer',
+    'LOGIN_SERIALIZER': 'apps.authentication.serializers.LoginSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'apps.authentication.serializers.PasswordResetSerializer',
 }
 
 MIDDLEWARE = [
@@ -177,7 +177,7 @@ DATABASES = {
 
 
 # Cache
-# OTP codes (authentication/otp.py) and DRF's request throttling both rely on
+# OTP codes (apps/authentication/otp.py) and DRF's request throttling both rely on
 # the default cache being shared across every process serving the app - a
 # per-process LocMemCache (Django's default with no REDIS_URL) silently
 # breaks both features as soon as more than one worker/container is running,
@@ -206,7 +206,7 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
-from authentication.validators import MIN_LENGTH as PASSWORD_MIN_LENGTH
+from apps.authentication.validators import MIN_LENGTH as PASSWORD_MIN_LENGTH
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -225,7 +225,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
     {
-        'NAME': 'authentication.validators.ComplexityValidator',
+        'NAME': 'apps.authentication.validators.ComplexityValidator',
     },
 ]
 
@@ -274,7 +274,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     # Scoped throttles only apply to views that set `throttle_scope`
-    # (login/registration/google-login) - see authentication/views.py.
+    # (login/registration/google-login) - see apps/authentication/views.py.
     'DEFAULT_THROTTLE_CLASSES': (
         'rest_framework.throttling.ScopedRateThrottle',
     ),

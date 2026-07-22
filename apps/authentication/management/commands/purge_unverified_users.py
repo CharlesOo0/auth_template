@@ -12,7 +12,7 @@ class Command(BaseCommand):
     Deletes accounts that never completed OTP e-mail verification. Meant to
     be run periodically (e.g. a daily cron/scheduled task) - the OTP code
     itself already expires from the cache after 10 minutes (see
-    authentication/otp.py), but the unusable User/EmailAddress rows it left
+    apps/authentication/otp.py), but the unusable User/EmailAddress rows it left
     behind would otherwise accumulate forever.
     """
     help = 'Deletes accounts older than --older-than-hours that never verified their e-mail.'
